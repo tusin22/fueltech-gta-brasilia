@@ -6,12 +6,56 @@
 </head>
 <body>
 
-  <h2>FuelTech – GTA Brasília RP</h2>
+<h2>FuelTech – GTA Brasília RP</h2>
 
-  <p>Gera mapa RPM × MAP com risco e exportação.</p>
+<h3>Configuração do carro</h3>
 
-  <button onclick="exportarCSV()">Exportar CSV</button>
+<label>Potência base (hp)</label><br>
+<input type="number" id="potenciaBase" value="300"><br><br>
 
-  <script src="script.js"></script>
+<label>Combustível</label><br>
+<select id="combustivel">
+  <option value="alcool">Álcool</option>
+  <option value="gasolina">Gasolina</option>
+  <option value="diesel">Diesel</option>
+</select><br><br>
+
+<label>Pistão</label><br>
+<select id="pistao">
+  <option value="original">Original</option>
+  <option value="forjado_taxado">Forjado Taxado</option>
+  <option value="forjado_normal">Forjado Normal</option>
+  <option value="forjado_destaxado">Forjado Destaxado</option>
+</select><br><br>
+
+<label>Biela</label><br>
+<select id="biela">
+  <option value="original">Original</option>
+  <option value="forjada">Forjada</option>
+</select><br><br>
+
+<label>Turbina</label><br>
+<select id="turbina">
+  <option value="">Aspirado</option>
+  <option value="42/36">42/36</option>
+  <option value="42/48">42/48</option>
+  <option value="50/36">50/36</option>
+  <option value="50/48">50/48</option>
+  <option value="50/63">50/63</option>
+  <option value="70/63">70/63</option>
+  <option value="70/70">70/70</option>
+  <option value="70/84">70/84</option>
+</select><br><br>
+
+<label>Nitro</label><br>
+<select id="nitro">
+  <option value="0">Sem nitro</option>
+  <option value="1">1 garrafa</option>
+  <option value="2">2 garrafas</option>
+</select><br><br>
+
+<button onclick="exportarCSV()">Gerar e Exportar CSV</button>
+
+<script src="script.js"></script>
 </body>
 </html>
