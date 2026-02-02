@@ -11,29 +11,34 @@ const MAP_END = 3.0;
 const MAP_STEP = 0.2;
 
 // ================================
-// CONFIGURAÇÃO DO CARRO (INPUT)
+// VARIÁVEL GLOBAL DO CARRO
 // ================================
 
-const carro = {
-  potenciaBase: 300, // hp original
-  aspirado: false,
-  fueltech: true,
-
-  combustivel: "alcool", // alcool | gasolina | diesel
-
-  cabecote: "arrombado", // polido | arrombado
-  comando: "medio", // baixo | medio | graduado
-  coldAir: true,
-
-  pistao: "forjado_taxado", // original | forjado_taxado | forjado_normal | forjado_destaxado
-  biela: "forjada", // original | forjada
-
-  turbina: "50/48", // null se aspirado
-  nitro: 0 // 0 | 1 | 2
-};
+let carro;
 
 // ================================
-// TABELAS DE GANHO
+// LEITURA DO FORMULÁRIO
+// ================================
+
+function lerCarroDoFormulario() {
+  return {
+    potenciaBase: Number(document.getElementById("potenciaBase").value),
+    combustivel: document.getElementById("combustivel").value,
+    pistao: document.getElementById("pistao").value,
+    biela: document.getElementById("biela").value,
+    turbina: document.getElementById("turbina").value || null,
+    nitro: Number(document.getElementById("nitro").value),
+
+    // fixos por enquanto (podem virar select depois)
+    cabecote: "arrombado",
+    comando: "medio",
+    coldAir: true,
+    fueltech: true
+  };
+}
+
+// ================================
+// TABELAS DE GANHOS
 // ================================
 
 const ganhos = {
@@ -42,9 +47,9 @@ const ganhos = {
     arrombado: { potencia: 0.30, temp: 0.25 }
   },
   comando: {
-    baixo: rpm => rpm < 4000 ? 0.25 : 0,
-    medio: rpm => rpm >= 3000 ? 0.25 : 0,
-    graduado: rpm => rpm >= 5000 ? 0.80 : 0
+    baixo: rpm => (rpm < 4000 ? 0.25 : 0),
+    medio: rpm => (rpm >= 3000 ? 0.25 : 0),
+    graduado: rpm => (rpm >= 5000 ? 0.80 : 0)
   },
   pistao: {
     original: { resistencia: 0.50, potencia: 0 },
@@ -69,7 +74,7 @@ const ganhos = {
 };
 
 // ================================
-// CÁLCULO POTÊNCIA E RESISTÊNCIA
+// POTÊNCIA
 // ================================
 
 function calcularPotencia(rpm) {
@@ -89,9 +94,14 @@ function calcularPotencia(rpm) {
   return pot;
 }
 
+// ================================
+// RESISTÊNCIA
+// ================================
+
 function calcularResistencia() {
   let resistencia = ganhos.pistao[carro.pistao].resistencia;
 
+  // não cumulativo
   resistencia = Math.min(resistencia, ganhos.biela[carro.biela]);
 
   if (carro.fueltech) resistencia *= 1.40;
@@ -100,7 +110,7 @@ function calcularResistencia() {
 }
 
 // ================================
-// MISTURA
+// MISTURA (SONDA)
 // ================================
 
 function calcularMistura(rpm, map) {
@@ -147,14 +157,13 @@ function calcularRisco(rpm, map, avanco, potencia) {
   const resistencia = calcularResistencia();
   const limiteTurbo = ganhos.turbinaLimite[carro.turbina] || 0;
 
-  if (map > limiteTurbo) risco += 40;
+  if (map > limiteTurbo && carro.turbina) risco += 40;
   if (rpm > 6500) risco += 20;
   if (avanco > 35 && map > 0) risco += 25;
 
-  const ganhoPercentual = (potencia / carro.potenciaBase) - 1;
-  const limiteMotor = resistencia;
+  const ganhoPercentual = potencia / carro.potenciaBase - 1;
 
-  if (ganhoPercentual > limiteMotor) risco += 50;
+  if (ganhoPercentual > resistencia) risco += 50;
 
   if (carro.combustivel === "alcool") risco += 10;
   if (carro.combustivel === "gasolina") risco += 5;
@@ -195,6 +204,8 @@ function gerarTabela() {
 // ================================
 
 function exportarCSV() {
+  carro = lerCarroDoFormulario();
+
   const tabela = gerarTabela();
   let csv = "RPM,MAP,MISTURA,AVANCO,POTENCIA,RISCO\n";
 
@@ -202,7 +213,7 @@ function exportarCSV() {
     csv += `${l.rpm},${l.map},${l.mistura},${l.avanco},${l.potencia},${l.risco}\n`;
   });
 
-  const blob = new Blob([csv], { type: "text/csv" });
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = "fueltech_gta_brasilia_rp.csv";
